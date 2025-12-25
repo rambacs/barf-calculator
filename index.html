@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#2c7be5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BARF Calculator">
+<meta charset="UTF-8" />
+<title>BARF Raw Feeding Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root {
+  --bg: #f7f7f7;
+  --card: #ffffff;
+  --accent: #2c7be5;
+  --text: #222;
+  --muted: #666;
+  --border: #ddd;
+  --focus: rgba(44, 123, 229, 0.35);
+}
+
+[data-theme="dark"] {
+  --bg: #0f1115;
+  --card: #181b21;
+  --accent: #5da9ff;
+  --text: #e6e6e6;
+  --muted: #a0a0a0;
+  --border: #2a2e36;
+  --focus: rgba(93, 169, 255, 0.4);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 1rem;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 1.25rem;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 1rem;
+}
+
+.field {
+  margin-bottom: 1.1rem;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  min-height: 44px; /* touch target */
+  padding: 0.65rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+button {
+  cursor: pointer;
+}
+
+button.secondary {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+}
+
+button.secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;      /* standard */
+  -moz-appearance: textfield; /* Firefox */
+}
+
+
+.results {
+  text-align: center;
+}
+
+.result-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.result-value.animate {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.result-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: auto;
+      min-height: auto;
+      padding: 0.3rem 0.55rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+.theme-toggle:hover {
+  opacity: 1;
+}
+details {
+  transition: all 0.2s ease;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.25rem 0;
+}
+
+footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 1rem;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>BARF Raw Feeding Calculator</h1>
+  <div style="display:flex; gap:0.4rem;">
+    <button id="installBtn" class="theme-toggle" style="display:none;">
+      ⬇ Install
+    </button>
+    <button id="themeToggle" class="theme-toggle">🌙 Dark</button>
+  </div>
+</div>
+
+<p class="subtitle">
+  Calculate daily energy needs and meal portion size for your dog
+</p>
+
+<div class="card">
+  <div class="field">
+    <label>Bodyweight</label>
+    <input type="number" id="weight" step="0.1" min="1" placeholder="e.g. 18kg">
+  </div>
+
+  <div class="field">
+    <label>Activity level</label>
+    <div class="hint">1.6 = Couch potato • 1.8 = Normal • 2.0 = Working dog</div>
+    <select id="activity">
+      <option value="">Select activity level</option>
+      <option value="1.6">1.6 – Very low activity</option>
+      <option value="1.7">1.7 – Low activity</option>
+      <option value="1.8">1.8 – Normal activity</option>
+      <option value="1.9">1.9 – High activity</option>
+      <option value="2.0">2.0 – Very high activity</option>
+    </select>
+  </div>
+
+<!--
+  <div class="field">
+    <label>Raw meal's calorie value</label>
+    <div class="hint">Energy per 100g of food</div>
+    <input type="number" id="mealKcal" min="1" placeholder="e.g. 204 kcal / 100g">
+  </div>
+
+-->
+
+<!--dropdown change starts-->
+
+  <div class="field">
+    <label>Raw meal</label>
+    <div class="hint">Choose from known meals or enter custom value</div>
+    <select id="mealPreset">
+      <option value="">Custom / not listed</option>
+      <option value="175">Mush – Single Protein – Turkey</option>
+      <option value="248">Mush – Single Protein – Salmon</option>
+      <option value="207">Mush – Single Protein – Chicken</option>
+      <option value="218">Mush – Single Protein – Beef</option>
+      <option value="204">Mush – Vaisto – Blue</option>      
+      <option value="244">Mush – Vaisto – Brown</option>
+      <option value="244">Mush – Vaisto – Gray</option>      
+      <option value="218">Mush – Vaisto – Purple</option>  
+      <option value="236">Mush – Vaisto – Wild</option>      
+      <option value="209">Mush – Vaisto – Light Green</option>      
+      <option value="199">Mush – Vaisto – Puppy Icy Blue</option>       
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Raw meal's calorie value</label>
+    <div class="hint">Energy per 100g of food</div>
+    <input type="number" id="mealKcal" min="1" placeholder="e.g. 204 kcal / 100g">
+  </div>
+</div>
+<!--dropdown change ends-->
+
+<div class="card">
+  <details id="optionalSection">
+    <summary>Optional feeding adjustments</summary>
+
+    <div class="field">
+      <label>Meals per day</label>
+      <div class="hint">Used only for portion split</div>
+      <select id="meals">
+        <option value="">Select portion split</option>
+        <option value="2">2 meals</option>
+        <option value="3">3 meals</option>
+      </select>
+    </div>
+
+<!--additional fields for secondary starts-->
+    <div class="field">
+      <label>Secondary food option</label>
+      <div class="hint">E.g. organs, topper, etc.</div>
+      <input type="number" id="secondaryGrams" min="0" placeholder="e.g. 25g">
+    </div>
+
+    <div class="field">
+      <label>Secondary food calorie value</label>
+      <div class="hint">Energy per 100g of food</div>
+      <input type="number" id="secondaryKcal" min="0" placeholder="e.g. 150 kcal / 100g">
+    </div>
+<!--additional fields for secondary ends-->
+
+    <div class="field">
+      <label>Extra carbohydrates</label>
+      <div class="hint">E.g. rice, oat bran, etc.</div>
+      <input type="number" id="carbGrams" min="0" placeholder="e.g. 50g">
+    </div>
+
+    <div class="field">
+      <label>Carbs' calorie value</label>
+      <div class="hint">Energy per 100g of food</div>
+      <input type="number" id="carbKcal" min="0" placeholder="e.g. 334 kcal / 100g">
+    </div>
+  </details>
+</div>
+
+<div class="card results">
+  <div>
+    <div class="result-value" id="requiredKcal">–</div>
+    <div class="result-label">Required calories / day</div>
+  </div>
+
+  <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border)">
+
+  <div>
+    <div class="result-value" id="mealGrams">–</div>
+    <div class="result-label">Raw meal grams / day</div>
+  </div>
+
+  <div id="perMealBlock" style="margin-top:0.75rem; display:none;">
+    <div class="result-value" id="perMealGrams">–</div>
+    <div class="result-label">Raw meal grams / portion</div>
+  </div>
+</div>
+
+<div class="card">
+  <button id="clearBtn" class="secondary">Clear all values</button>
+</div>
+
+<footer>
+  Calculations run locally • No data stored remotely
+</footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = "barf-calculator-state";
+const root = document.documentElement;
+const themeToggle = document.getElementById("themeToggle");
+
+const savedTheme =
+  localStorage.getItem("theme") ||
+  (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+root.dataset.theme = savedTheme;
+themeToggle.textContent = savedTheme === "dark" ? "☀️ Light" : "🌙 Dark";
+
+themeToggle.onclick = () => {
+  const next = root.dataset.theme === "dark" ? "light" : "dark";
+  root.dataset.theme = next;
+  localStorage.setItem("theme", next);
+  themeToggle.textContent = next === "dark" ? "☀️ Light" : "🌙 Dark";
+};
+
+/*
+const inputs = {
+  weight: document.getElementById("weight"),
+  activity: document.getElementById("activity"),
+  mealKcal: document.getElementById("mealKcal"),
+  meals: document.getElementById("meals"),
+  carbGrams: document.getElementById("carbGrams"),
+  carbKcal: document.getElementById("carbKcal")
+};
+*/
+
+// extra inputs start
+const inputs = {
+  weight: document.getElementById("weight"),
+  activity: document.getElementById("activity"),
+  mealKcal: document.getElementById("mealKcal"),
+  mealPreset: document.getElementById("mealPreset"),
+  meals: document.getElementById("meals"),
+  secondaryGrams: document.getElementById("secondaryGrams"),
+  secondaryKcal: document.getElementById("secondaryKcal"),
+  carbGrams: document.getElementById("carbGrams"),
+  carbKcal: document.getElementById("carbKcal")
+};
+// extra inputs end
+
+/*
+
+//Meal preset logic
+
+inputs.mealPreset.addEventListener("change", () => {
+  if (inputs.mealPreset.value) {
+    inputs.mealKcal.value = inputs.mealPreset.value;
+  } else {
+    inputs.mealKcal.value = "";
+    }
+  saveState();
+  calculate();
+});
+*/
+
+const optional = document.getElementById("optionalSection");
+
+const requiredKcalEl = document.getElementById("requiredKcal");
+const mealGramsEl = document.getElementById("mealGrams");
+const perMealBlock = document.getElementById("perMealBlock");
+const perMealGramsEl = document.getElementById("perMealGrams");
+
+inputs.mealPreset.addEventListener("change", () => {
+  if (inputs.mealPreset.value) {
+    // Preset selected → force kcal value
+    inputs.mealKcal.value = inputs.mealPreset.value;
+    inputs.mealKcal.disabled = true;
+    saveState();
+    calculate();
+  } else {
+    // Custom selected → FULL reset
+    inputs.mealKcal.value = "";
+    inputs.mealKcal.disabled = false;
+    clearResults();
+    saveState();
+    //return;
+  }
+});
+
+function saveState() {
+  const state = {};
+  Object.entries(inputs).forEach(([key, el]) => {
+    state[key] = el.value;
+  });
+  state.optionalOpen = optional.open;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const state = JSON.parse(raw);
+    Object.entries(inputs).forEach(([key, el]) => {
+      if (state[key] !== undefined) el.value = state[key];
+    });
+
+    if (state.optionalOpen) optional.open = true;
+  } catch {
+    /* ignore corrupted storage */
+  }
+}
+
+function animate(el, value) {
+  el.classList.add("animate");
+  setTimeout(() => {
+    el.textContent = value;
+    el.classList.remove("animate");
+  }, 120);
+}
+
+function clearResults() {
+  requiredKcalEl.textContent = "–";
+  mealGramsEl.textContent = "–";
+  perMealGramsEl.textContent = "–";
+  perMealBlock.style.display = "none";
+}
+
+function calculate() {
+  // If preset is Custom and no kcal entered → reset & stop
+  if (!inputs.mealPreset.value && !inputs.mealKcal.value) {
+    clearResults();
+    return;
+  }
+
+  const w = parseFloat(inputs.weight.value);
+  const a = parseFloat(inputs.activity.value);
+  const mk = parseFloat(inputs.mealKcal.value);
+
+  if (!w || !a || !mk) {
+    clearResults();
+    return;
+  }
+
+  const required = 70 * Math.pow(w, 0.75) * a;
+  let remaining = required;
+
+  if (optional.open) {
+    const sg = parseFloat(inputs.secondaryGrams.value);
+    const sk = parseFloat(inputs.secondaryKcal.value);
+    if (sg && sk) remaining -= (sg * sk) / 100;
+
+    const cg = parseFloat(inputs.carbGrams.value);
+    const ck = parseFloat(inputs.carbKcal.value);
+    if (cg && ck) remaining -= (cg * ck) / 100;
+  }
+
+  const grams = remaining / (mk / 100);
+
+  animate(requiredKcalEl, Math.round(required));
+  animate(mealGramsEl, Math.round(grams));
+
+  if (optional.open && inputs.meals.value) {
+    perMealBlock.style.display = "block";
+    animate(perMealGramsEl, Math.round(grams / inputs.meals.value));
+  } else {
+    perMealBlock.style.display = "none";
+  }
+}
+
+/*
+document.querySelectorAll("input, select").forEach(el =>
+  el.addEventListener("input", () => {
+    saveState();
+    calculate();
+  })
+);
+*/
+
+document.querySelectorAll("input, select").forEach(el =>
+  el.addEventListener("input", () => {
+    // Block calculation if meal preset is custom and kcal is empty
+    if (!inputs.mealPreset.value && !inputs.mealKcal.value) {
+      saveState();
+      clearResults();
+      return;
+    }
+
+    saveState();
+    calculate();
+  })
+);
+
+document.querySelectorAll("details").forEach(el =>
+  el.addEventListener("toggle", () => {
+    saveState();
+    calculate();
+  })
+);
+
+loadState();
+calculate();
+
+document.getElementById("clearBtn").onclick = () => {
+  Object.values(inputs).forEach(i => i.value = "");
+  optional.open = false;
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  requiredKcalEl.textContent = "–";
+  mealGramsEl.textContent = "–";
+  perMealGramsEl.textContent = "–";
+  perMealBlock.style.display = "none";
+};
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "inline-block";
+});
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBtn.style.display = "none";
+});
+
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+});
+
+</script>
+</body>
+</html>
