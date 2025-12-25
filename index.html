@@ -162,6 +162,13 @@ input[type="number"] {
   color: var(--muted);
 }
 
+.result-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+  display: none; /* hidden by default */
+}
+
 .theme-toggle {
       background: none;
       border: 1px solid var(--border);
@@ -233,17 +240,6 @@ footer {
     </select>
   </div>
 
-<!--
-  <div class="field">
-    <label>Raw meal's calorie value</label>
-    <div class="hint">Energy per 100g of food</div>
-    <input type="number" id="mealKcal" min="1" placeholder="e.g. 204 kcal / 100g">
-  </div>
-
--->
-
-<!--dropdown change starts-->
-
   <div class="field">
     <label>Raw meal</label>
     <div class="hint">Choose from known meals or enter custom value</div>
@@ -269,7 +265,6 @@ footer {
     <input type="number" id="mealKcal" min="1" placeholder="e.g. 204 kcal / 100g">
   </div>
 </div>
-<!--dropdown change ends-->
 
 <div class="card">
   <details id="optionalSection">
@@ -285,7 +280,6 @@ footer {
       </select>
     </div>
 
-<!--additional fields for secondary starts-->
     <div class="field">
       <label>Secondary food option</label>
       <div class="hint">E.g. organs, topper, etc.</div>
@@ -297,7 +291,6 @@ footer {
       <div class="hint">Energy per 100g of food</div>
       <input type="number" id="secondaryKcal" min="0" placeholder="e.g. 150 kcal / 100g">
     </div>
-<!--additional fields for secondary ends-->
 
     <div class="field">
       <label>Extra carbohydrates</label>
@@ -317,6 +310,7 @@ footer {
   <div>
     <div class="result-value" id="requiredKcal">–</div>
     <div class="result-label">Required calories / day</div>
+    <div class="result-hint">Secondary and carbs subtracted</div>
   </div>
 
   <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border)">
@@ -346,6 +340,7 @@ footer {
 const STORAGE_KEY = "barf-calculator-state";
 const root = document.documentElement;
 const themeToggle = document.getElementById("themeToggle");
+const resultHintEl = document.querySelector(".result-hint");
 
 const savedTheme =
   localStorage.getItem("theme") ||
@@ -361,18 +356,6 @@ themeToggle.onclick = () => {
   themeToggle.textContent = next === "dark" ? "☀️ Light" : "🌙 Dark";
 };
 
-/*
-const inputs = {
-  weight: document.getElementById("weight"),
-  activity: document.getElementById("activity"),
-  mealKcal: document.getElementById("mealKcal"),
-  meals: document.getElementById("meals"),
-  carbGrams: document.getElementById("carbGrams"),
-  carbKcal: document.getElementById("carbKcal")
-};
-*/
-
-// extra inputs start
 const inputs = {
   weight: document.getElementById("weight"),
   activity: document.getElementById("activity"),
@@ -384,22 +367,6 @@ const inputs = {
   carbGrams: document.getElementById("carbGrams"),
   carbKcal: document.getElementById("carbKcal")
 };
-// extra inputs end
-
-/*
-
-//Meal preset logic
-
-inputs.mealPreset.addEventListener("change", () => {
-  if (inputs.mealPreset.value) {
-    inputs.mealKcal.value = inputs.mealPreset.value;
-  } else {
-    inputs.mealKcal.value = "";
-    }
-  saveState();
-  calculate();
-});
-*/
 
 const optional = document.getElementById("optionalSection");
 
@@ -505,16 +472,19 @@ function calculate() {
   } else {
     perMealBlock.style.display = "none";
   }
+  if (
+    optional.open &&
+    (
+        (parseFloat(inputs.secondaryGrams.value) && parseFloat(inputs.secondaryKcal.value)) ||
+        (parseFloat(inputs.carbGrams.value) && parseFloat(inputs.carbKcal.value))
+    )
+  ) {
+    resultHintEl.style.display = "block";
+  } else {
+    resultHintEl.style.display = "none";
 }
 
-/*
-document.querySelectorAll("input, select").forEach(el =>
-  el.addEventListener("input", () => {
-    saveState();
-    calculate();
-  })
-);
-*/
+}
 
 document.querySelectorAll("input, select").forEach(el =>
   el.addEventListener("input", () => {
