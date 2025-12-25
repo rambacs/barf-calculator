@@ -1,6 +1,6 @@
 {
   "name": "BARF Raw Feeding Calculator",
-  "short_name": "BARF Calc",
+  "short_name": "BARF Calculator",
   "description": "Offline calculator for BARF raw feeding portions",
   "start_url": "./",
   "display": "standalone",
@@ -19,3 +19,4 @@
     }
   ]
 }
+
