@@ -541,12 +541,14 @@ installBtn.addEventListener("click", async () => {
   if (!deferredPrompt) return;
 
   deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
+  const choiceResult = await deferredPrompt.userChoice;
+  console.log(`User response to PWA install: ${choiceResult.outcome}`);
   installBtn.style.display = "none";
+  deferredPrompt = null;
 });
 
 window.addEventListener("appinstalled", () => {
+  console.log("PWA was installed");
   installBtn.style.display = "none";
 });
 
